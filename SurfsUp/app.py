@@ -1,45 +1,59 @@
-# Import the dependencies.
-from flask import Flask, jsonify, request
-from flask_sqlalchemy import SQLAlchemy
-import sqlite3
+# Dependencies
+import sqlalchemy
+from flask import Flask, jsonify, render_template
+from sqlalchemy.ext.automap import automap_base
+from sqlalchemy.orm import Session
+from sqlalchemy import create_engine, func
+import pandas as pd
 
-#################################################
-# Database Setup
-#################################################
-
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///Users/jnorth/Documents/GitHub/sqlalchemy-challenge/SurfsUp/Resources/hawaii.sqlite'
-db = SQLAlchemy(app)
-
-# reflect an existing database into a new model
-db.reflect()
-
-# Access the reflected models for each table
-measurement = db.classes.measurement  # Replace 'Item' with the actual name of your table
-
-# Now you can use the 'Item' class to query and manipulate data
-items = db.session.query(Item).all()
-# reflect the tables
-
-
-
-# Save references to each table
-
+# create engine to hawaii.sqlite
+engine = create_engine("sqlite:///Resources/hawaii.sqlite")
 
 # Create our session (link) from Python to the DB
+session = Session(engine)
+
+# reflect an existing database into a new model
+Base = automap_base()
+Base.prepare(engine, reflect=True)
+
+# Get the table names from the database
+table_names = Base.classes.keys()
+
+# Save references to each table
+M_base = Base.classes.measurement
+S_base = Base.classes.station
+
+# Import Measurement data
+measure_col_names = [column.key for column in M_base.__table__.columns]
+measure_rows = session.query(M_base).all()
+measure_data = [m.__dict__ for m in measure_rows]
+Measurement = pd.DataFrame(measure_data, columns=measure_col_names)
+
+# Import Station data
+station_col_names = [column.key for column in S_base.__table__.columns]
+station_rows = session.query(S_base).all()
+station_data = [s.__dict__ for s in station_rows]
+Stations = pd.DataFrame(station_data, columns=station_col_names)
+
+# create Flask app
+app = Flask(__name__)
 
 
-#################################################
-# Flask Setup
-#################################################
+@app.route("/")
+def home():
+    print("Server received request for 'Home' page...")
+    return "Welcome to my 'Home' page, homey!"
+
+@app.route("/second")
+def second():
+    print("Server received request for SECOND page...")
+    return "Welcome to the SECOND page!"
+
+@app.route("/data")
+def display_measurement():
+    columns = Measurement.columns.tolist()  # Get column names
+    rows = Measurement.to_dict(orient='records')  # Convert DataFrame to list of dictionaries
+    return render_template("measurement.html", columns=columns, rows=rows)
 
 
-
-
-#################################################
-# Flask Routes
-#################################################
-
-
-if __name__ == '__main__':
-    app.run()
+app.run()
