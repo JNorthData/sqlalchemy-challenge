@@ -45,15 +45,22 @@ def home():
     return "Welcome to my 'Home' page, homey!"
 
 @app.route("/second")
+
 def second():
     print("Server received request for SECOND page...")
     return "Welcome to the SECOND page!"
 
-@app.route("/data")
+@app.route("/measurement")
 def display_measurement():
-    columns = Measurement.columns.tolist()  # Get column names
-    rows = Measurement.to_dict(orient='records')  # Convert DataFrame to list of dictionaries
-    return render_template("measurement.html", columns=columns, rows=rows)
+    mcol = Measurement.columns.tolist()  # Get column names
+    mrows = Measurement.to_dict(orient='records')  # Convert DataFrame to list of dictionaries
+    return render_template("measurement.html", columns=mcol, rows=mrows)
+
+@app.route("/station")
+def display_station():
+    scol = Station.columns.tolist()  # Get column names
+    srows = Station.to_dict(orient='records')  # Convert DataFrame to list of dictionaries
+    return render_template("station.html", columns=scol, rows=srows)
 
 
 app.run()
