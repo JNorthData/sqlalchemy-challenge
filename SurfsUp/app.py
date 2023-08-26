@@ -10,49 +10,35 @@ import flask_sqlalchemy
 import os 
 
 
+# change directory to the same directory as this file. 
 os.chdir(os.path.dirname(os.path.realpath(__file__)))
-
 
 # create engine to hawaii.sqlite
 engine = create_engine("sqlite:///Resources/hawaii.sqlite")
-
-# Create our session (link) from Python to the DB
-
-
-# don't use global variable ^
-
 
 # reflect an existing database into a new model
 Base = automap_base()
 Base.prepare(engine, reflect=True)
 
-
 # Save references to each table
 Measurement = Base.classes.measurement
 Station = Base.classes.station
 
-
 # create Flask app
 app = Flask(__name__)
-
 
 @app.route("/")
 def home():
     routes = [rule.rule for rule in app.url_map.iter_rules() if "static" not in rule.rule]
-    routes_html = "\n".join([f"<p style='font-size: 30px;'>{url}</p>" for url in routes])
-    return render_template("home.html", routes_html=routes_html)
-
-
+    header = "Home Page : URL Directory"
+    return jsonify(routes)
+    
 @app.route("/api/v1.0/station")
 def display_station():
     session = Session(engine)
-
-
-
-
+    #
     session.close()
-    return jsonify()
-
+    return jsonify(stations)
 
 @app.route("/api/v1.0/measurement")
 def display_measurement():
